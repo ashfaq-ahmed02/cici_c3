@@ -1,0 +1,77 @@
+name: CI/CD - C3 Website
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+
+  # =========================
+  # 1. CONTINUOUS INTEGRATION
+  # =========================
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test HTML file
+        run: |
+          echo "Checking index.html..."
+          test -f index.html
+          echo "HTML file exists!"
+          echo "CI test passed!"
+
+
+  # =========================
+  # 2. BUILD
+  # =========================
+  build:
+    name: build
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build website
+        run: |
+          mkdir build
+          cp index.html build/
+          echo "Website build completed!"
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./build
+
+
+  # =========================
+  # 3. DEPLOY
+  # =========================
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
+.
